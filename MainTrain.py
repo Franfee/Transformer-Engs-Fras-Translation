@@ -62,7 +62,7 @@ def train_seq2seq(net, data_iter, lr, num_epochs, tgt_vocab, device):
 
     lossFun = MaskedSoftmaxCELoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
-
+    # loss绘图器
     animator = Animator(xlabel='epoch', ylabel='loss', xlim=[0, num_epochs])
     # 计时器
     timer = Timer()
@@ -93,7 +93,7 @@ def train_seq2seq(net, data_iter, lr, num_epochs, tgt_vocab, device):
         # end one epoch
         if epoch % 10 == 0:
             torch.save(net.state_dict(), MODEL_PATH + "_" + "%d" % epoch)
-        # visual train status
+        # visual train loss status
         animator.add(epoch + 1, (metric[0] / metric[1],))
         metricLoss = metric[0] / metric[1]
         print(f"epoch:{epoch + 1},metric:{(metricLoss,)}")
