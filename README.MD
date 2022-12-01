@@ -10,7 +10,6 @@
 loss绘图使用visdom绘图还是matplot绘图<br>
 * 使用visdom画图前需要在cmd窗口或命令行输入"python -m visdom.server"<br>
 打开画图后端,并在浏览器打开对应提示的网址 <br>
-<br>
 * 运行 MainTest_Manual.py 手动输入测试
 
 # 文件结构
