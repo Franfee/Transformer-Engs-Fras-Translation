@@ -4,8 +4,8 @@
 # @Software: PyCharm
 # @python  : Python 3.9.12
 import torch
-from util.dataLoader import load_processed_nmt_data
 from net.Transformer import EncoderDecoder, TransformerDecoder, TransformerEncoder
+from util.dataLoader import load_processed_nmt_data
 from Predict import predict_seq2seq
 
 # ------------------net param-------------------
@@ -13,7 +13,7 @@ from env.Env import *
 # ----------------------------------------------
 
 # ------------------------------DATA LOADER-----------------------------------
-SRC_VOCAB, TGT_VOCAB = load_processed_nmt_data(FILE_DIR, True)
+SRC_VOCAB, TGT_VOCAB = load_processed_nmt_data(True)
 # ----------------------------------------------------------------------------
 
 
