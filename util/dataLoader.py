@@ -8,7 +8,7 @@ import os
 import sys
 import pickle
 
-from env.Env import FILE_NAME
+from env.Env import FILE_DIR, FILE_NAME, RAW_DIR, RAW_FILE_NAME
 from util.Vocab import *
 
 
@@ -20,14 +20,9 @@ def read_raw_data_nmt():
 
     :return: 载入“英语－法语”数据集
     """
-    BASE_DIR = sys.path[0]
-    if "util" in BASE_DIR:
-        data_dir = os.path.join(BASE_DIR, '..', 'dataset', 'fra-eng')
-    else:
-        data_dir = os.path.join(BASE_DIR, 'dataset', 'fra-eng')
-    if not os.path.exists(data_dir):
-        raise FileNotFoundError("Please check dir : %s" % data_dir)
-    with open(os.path.join(data_dir, 'fra.txt'), 'r', encoding='utf-8') as f:
+    if not os.path.exists(RAW_DIR):
+        raise FileNotFoundError("Please check dir : %s" % RAW_DIR)
+    with open(os.path.join(RAW_DIR, RAW_FILE_NAME), 'r', encoding='utf-8') as f:
         return f.read()
 
 
@@ -50,7 +45,7 @@ def preprocess_nmt(text):
     return ''.join(out)
 
 
-def save_processed_nmt_data(BASE_DIR, num_examples):
+def save_processed_nmt_data(num_examples):
     # 下载并且读取数据
     print("Loading raw data...")
     raw_text = read_raw_data_nmt()
@@ -66,22 +61,21 @@ def save_processed_nmt_data(BASE_DIR, num_examples):
     tgt_vocab = Vocab(target, min_freq=2, reserved_tokens=['<pad>', '<bos>', '<eos>'])
     # 存储本地位置处理
     print("Storing data...")
-    FILE_DIR = os.path.join(BASE_DIR, 'dataset', 'fra-eng-processed')
-    FILE_LIST = [src_vocab, tgt_vocab, source, target]
+    processed_data_list = [src_vocab, tgt_vocab, source, target]
     FILE_PATH = []
-    for FileName in FILE_NAME:
-        FILE_PATH.append(os.path.join(FILE_DIR, FileName))
+    for file_name in FILE_NAME:
+        FILE_PATH.append(os.path.join(FILE_DIR, file_name))
     # 进行本地存储
-    for File, FileName in zip(FILE_LIST, FILE_PATH):
-        with open(FileName, 'wb') as _f:
+    for processedData, file_name in zip(processed_data_list, FILE_PATH):
+        with open(file_name, 'wb') as _f:
             # 序列化数据
-            fileObj = pickle.dumps(File)
+            fileObj = pickle.dumps(processedData)
             # 保存数据
             pickle.dump(fileObj, _f)
     print("Stored data.")
 
 
-def load_processed_nmt_data(FILE_DIR, OnlyVocab=False):
+def load_processed_nmt_data(OnlyVocab=False):
     print("Loading data.")
     # 处理数据文件位置
     FILE_PATH = []
@@ -105,18 +99,12 @@ def load_processed_nmt_data(FILE_DIR, OnlyVocab=False):
 
 def dataLoader_nmt_data(batch_size, num_steps, num_examples=None):
     """返回翻译数据集的迭代器和词表"""
-    # 处理数据文件位置
-    BASE_DIR = sys.path[0]
-    if "util" in BASE_DIR:
-        BASE_DIR = os.path.join(BASE_DIR, '..')
-    FILE_DIR = os.path.join(BASE_DIR, 'dataset', 'fra-eng-processed')
-
     # 不存在本地数据
     if not len(os.listdir(FILE_DIR)) > 1:
-        save_processed_nmt_data(BASE_DIR, num_examples)
+        save_processed_nmt_data(num_examples)
 
     # 加载数据
-    src_vocab, tgt_vocab, source, target = load_processed_nmt_data(FILE_DIR)
+    src_vocab, tgt_vocab, source, target = load_processed_nmt_data()
     # 小批量化数据
     print("Building array...")
     src_array, src_valid_len = build_array_nmt(source, src_vocab, num_steps)
