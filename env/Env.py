@@ -12,20 +12,26 @@ from util.deviceUtil import try_gpu
 DEVICE = try_gpu()
 
 # ------------------FilePath------------------------
+# project dir
 BASE_DIR = sys.path[0]
 if "util" in BASE_DIR:
     BASE_DIR = os.path.join(BASE_DIR, '..')
+# raw source data
+RAW_DIR = os.path.join(BASE_DIR, 'dataset', 'fra-eng')
+RAW_FILE_NAME = "fra.txt"
+# processed data file dir
 FILE_DIR = os.path.join(BASE_DIR, 'dataset', 'fra-eng-processed')
+# processed data file name
 FILE_NAME = ["SRC_VOCAB.pkl", "TGT_VOCAB.pkl", "source.pkl", "target.pkl"]
 MODEL_PATH = "model/final.mdl"
 
 # -------------------train params------------------------
 EPOCHS = 100
 LR_RATE = 0.005
-BATCH_SIZE = 128*4  # about 2G GPU MEM
+BATCH_SIZE = 128*4      # about 2G GPU MEM
 LOSS_STOP_EPS = 0.01
 
-# -------------------net params------------------
+# ---------------------net params------------------------
 num_steps = 10
 key_size, query_size, value_size = 32, 32, 32
 num_hiddens, num_layers = 32, 2
