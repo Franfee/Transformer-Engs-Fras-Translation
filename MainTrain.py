@@ -22,9 +22,9 @@ from env.Env import ffn_num_hiddens, ffn_num_input, norm_shape, num_hiddens
 from env.Env import num_heads, num_steps, num_layers, drop_out
 
 # ----------------------------------Switch------------------------------------
-TRAIN = True
+TRAIN = False
 TEST = True
-SHOW_ATTENTION = False
+SHOW_ATTENTION = True
 
 # ------------------------------DATA LOADER-----------------------------------
 TRAIN_ITER, SRC_VOCAB, TGT_VOCAB = dataLoader_nmt_data(BATCH_SIZE, num_steps)
@@ -93,7 +93,7 @@ def train_seq2seq(net, data_iter, lr, num_epochs, tgt_vocab, device):
         # end one epoch
         if epoch % 10 == 0:
             torch.save(net.state_dict(), MODEL_PATH + "_" + "%d" % epoch)
-        # visual train loss status
+        # visual train status
         animator.add(epoch + 1, (metric[0] / metric[1],))
         metricLoss = metric[0] / metric[1]
         print(f"epoch:{epoch + 1},metric:{(metricLoss,)}")
@@ -148,7 +148,7 @@ if __name__ == '__main__':
 
         if SHOW_ATTENTION:
             import pandas as pd
-            from util.d2l import show_heatmaps, d2l
+            from util.Animator import show_heatmaps
 
             print("Show attention:")
             # 最后一个英语到法语的句子翻译工作时, 可视化transformer的注意力权重.
@@ -162,7 +162,6 @@ if __name__ == '__main__':
             # 接下来,将逐行呈现两层多头注意力的权重.每个注意力头都根据查询、键和值的不同的表示子空间来表示不同的注意力
             show_heatmaps(enc_attention_weights.cpu(), xlabel='Key positions', ylabel='Query positions',
                           titles=['Head %d' % i for i in range(1, 5)], figsize=(7, 3.5))
-            d2l.plt.show()
 
             # 为了可视化解码器的自注意力权重和“编码器－解码器”的注意力权重,我们需要完成更多的数据操作⼯作.
             # 例如,我们⽤零填充被掩蔽住的注意⼒权重.值得注意的是,解码器的自注意力权重和“编码器－解码器”
@@ -179,17 +178,17 @@ if __name__ == '__main__':
             print(dec_self_attention_weights.shape, dec_inter_attention_weights.shape)
             # 由于解码器自注意力的自回归属性,查询不会对当前位置之后的“键－值”对进行注意力计算
             # Plus one to include the beginning-of-sequencetoken
-            d2l.show_heatmaps(
+            show_heatmaps(
                 dec_self_attention_weights[:, :, :, :len(translation.split()) + 1],
                 xlabel='Key positions', ylabel='Query positions',
                 titles=['Head %d' % i for i in range(1, 5)], figsize=(7, 3.5))
-            d2l.plt.show()
+
             # 与编码器的自注意力的情况类似,通过指定输入序列的有效长度,输出序列的查询不会与输入序列中填充位置的词元进行注意力计算
-            d2l.show_heatmaps(
+            show_heatmaps(
                 dec_inter_attention_weights, xlabel='Key positions',
                 ylabel='Query positions', titles=['Head %d' % i for i in range(1, 5)],
                 figsize=(7, 3.5))
-            d2l.plt.show()
+
 
 """
 transformer架构是为了“序列到序列”的学习而提出的,但transformer编码器或transformer解码器通常被单独用于不同的深度学习任务中.
