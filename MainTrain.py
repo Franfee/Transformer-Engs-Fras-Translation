@@ -24,7 +24,7 @@ from env.Env import num_heads, num_steps, num_layers, drop_out
 # ----------------------------------Switch------------------------------------
 TRAIN = False
 TEST = True
-SHOW_ATTENTION = True
+TEST_SHOW_ATTENTION = True
 
 # ------------------------------DATA LOADER-----------------------------------
 TRAIN_ITER, SRC_VOCAB, TGT_VOCAB = dataLoader_nmt_data(BATCH_SIZE, num_steps)
@@ -87,13 +87,17 @@ def train_seq2seq(net, data_iter, lr, num_epochs, tgt_vocab, device):
             # 梯度裁剪
             grad_clipping(net, 1)
             num_tokens = Y_valid_len.sum()
+            # 进行下一步前向计算
             optimizer.step()
+            # 保存训练过程metric
             with torch.no_grad():
                 metric.add(loss.sum(), num_tokens, 1)
         # end one epoch
         if epoch % 10 == 0:
+            # 每训练10次保存一次模型
             torch.save(net.state_dict(), MODEL_PATH + "_" + "%d" % epoch)
-        # visual train status
+
+        # visual train status(every epoch)
         animator.add(epoch + 1, (metric[0] / metric[1],))
         metricLoss = metric[0] / metric[1]
         print(f"epoch:{epoch + 1},metric:{(metricLoss,)}")
@@ -143,10 +147,10 @@ if __name__ == '__main__':
         fras = ["va !", "j'ai perdu .", "il est calme .", "je suis chez moi ."]
         for eng, fra in zip(engs, fras):
             translation, dec_attention_weight_seq = predict_seq2seq(
-                net, eng, SRC_VOCAB, TGT_VOCAB, num_steps, DEVICE, SHOW_ATTENTION)
+                net, eng, SRC_VOCAB, TGT_VOCAB, num_steps, DEVICE, TEST_SHOW_ATTENTION)
             print(f'{eng} => {translation}', '\t', f'bleu:{bleu(translation, fra, k=2):.3f}')
 
-        if SHOW_ATTENTION:
+        if TEST_SHOW_ATTENTION:
             import pandas as pd
             from util.Animator import show_heatmaps
 
