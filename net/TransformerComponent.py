@@ -39,8 +39,7 @@ def sequence_mask(X, valid_len, value=0.):
 
     """
     seq_len = X.size(1)
-    valid_len = valid_len.cuda()
-    mask = torch.arange(seq_len).cuda()[None, :] < valid_len[:, None]
+    mask = torch.arange(seq_len).cuda()[None, :] < valid_len.cuda()[:, None]
     X[~mask] = value
     return X
 
@@ -68,6 +67,7 @@ class MaskedSoftmaxCELoss(nn.CrossEntropyLoss):
     最后,将所有词元的损失乘以掩码,以过滤掉损失中填充词元产生的不相关预测。
 
     """
+
     # pred的形状：(batch_size,num_steps,vocab_size)
     # label的形状：(batch_size,num_steps)
     # valid_len的形状：(batch_size,)
@@ -133,6 +133,7 @@ class DotProductAttention(nn.Module):
     在下面的缩放点积注意力的实现中使用Dropout进行模型正则化。
 
     """
+
     def __init__(self, dropout):
         super(DotProductAttention, self).__init__()
         self.attention_weights = None
@@ -152,6 +153,7 @@ class DotProductAttention(nn.Module):
 
 class MultiHeadAttention(nn.Module):
     """多头注意力"""
+
     def __init__(self, key_size, query_size, value_size, num_hiddens, num_heads, dropout, bias=False):
         super(MultiHeadAttention, self).__init__()
         self.num_heads = num_heads
@@ -184,6 +186,7 @@ class MultiHeadAttention(nn.Module):
 
 class PositionalEncoding(nn.Module):
     """位置编码"""
+
     def __init__(self, num_hiddens, dropout, max_len=1000):
         super(PositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(dropout)
@@ -197,6 +200,7 @@ class PositionalEncoding(nn.Module):
     def forward(self, X):
         X = X + self.P[:, :X.shape[1], :].to(X.device)
         return self.dropout(X)
+
 
 class PositionWiseFFN(nn.Module):
     def __init__(self, ffn_num_input, ffn_num_hiddens, ffn_num_outputs):
@@ -237,4 +241,3 @@ class AddNorm(nn.Module):
     def forward(self, X, Y):
         # 残差连接要求两个输入的形状相同,以便加法操作后输出张量的形状相同.
         return self.ln(self.dropout(Y) + X)
-

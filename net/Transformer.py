@@ -91,7 +91,7 @@ class DecoderBlock(nn.Module):
         X2 = self.attention1(X, key_values, key_values, dec_valid_lens)
         Y = self.addNorm1(X, X2)
         # 编码器－解码器注意力.
-        # enc_outputs的开头:(batch_size,num_steps,num_hiddens)
+        # enc_outputs的开头: (batch_size,num_steps,num_hiddens)
         Y2 = self.attention2(Y, enc_outputs, enc_outputs, enc_valid_lens)
         Z = self.addNorm2(Y, Y2)
         return self.addNorm3(Z, self.ffn(Z)), state
