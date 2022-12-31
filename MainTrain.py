@@ -76,20 +76,24 @@ def train_seq2seq(net, data_iter, lr, num_epochs, tgt_vocab, device):
                 print(f"epoch:{epoch + 1},batch_id:{int(metric[2])}")
             # 清空梯度
             optimizer.zero_grad()
-            X, X_valid_len, Y, Y_valid_len = [x.to(device) for x in batch]
-            bos = torch.tensor([tgt_vocab['<bos>']] * Y.shape[0], device=device).reshape(-1, 1)
-            # 强制教学
-            dec_input = torch.cat([bos, Y[:, :-1]], 1)
-            Y_hat, _ = net(X, dec_input, X_valid_len)
-            loss = lossFun(Y_hat, Y, Y_valid_len)
+            # 读取一批次数据
+            SrcSeq, SrcSeq_valid_len, TgtSeq, TgtSeq_valid_len = [x.to(device) for x in batch]
+            # 为目标序列增加 "序列开始信息"
+            bos = torch.tensor([tgt_vocab['<bos>']] * TgtSeq.shape[0], device=device).reshape(-1, 1)
+            # 强制教学, 为解码器输入增加目标序列信息
+            dec_input = torch.cat([bos, TgtSeq[:, :-1]], 1)
+            # 经过一次神经网络计算
+            TgtSeq_hat, _ = net(SrcSeq, dec_input, SrcSeq_valid_len)
+            # 计算损失
+            loss = lossFun(TgtSeq_hat, TgtSeq, TgtSeq_valid_len)
             # 损失函数的标量进行“反向传播”
             loss.sum().backward()
             # 梯度裁剪
             grad_clipping(net, 1)
-            num_tokens = Y_valid_len.sum()
             # 进行下一步前向计算
             optimizer.step()
             # 保存训练过程metric
+            num_tokens = TgtSeq_valid_len.sum()
             with torch.no_grad():
                 metric.add(loss.sum(), num_tokens, 1)
         # end one epoch
