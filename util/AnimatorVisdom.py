@@ -30,7 +30,7 @@ class Animator:
             self.opts['title'] = title
         self.suptitle = suptitle
         # Y的第一个点的坐标,X的第一个点的坐标,窗口的名称,图像的标例
-        if (self.opts['legend'] is None) or len(self.opts['legend']) == 1:
+        if (legend is None) or len(self.opts['legend']) == 1:
             self.viz.line([0.], [0.], win=self.suptitle, opts=self.opts)
         else:
             start_y = []
