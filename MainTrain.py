@@ -80,7 +80,7 @@ def train_seq2seq(net, data_iter, lr, num_epochs, tgt_vocab, device):
             SrcSeq, SrcSeq_valid_len, TgtSeq, TgtSeq_valid_len = [x.to(device) for x in batch]
             # 为目标序列增加 "序列开始信息"
             bos = torch.tensor([tgt_vocab['<bos>']] * TgtSeq.shape[0], device=device).reshape(-1, 1)
-            # 强制教学, 为解码器输入增加目标序列信息
+            # 强制教学, 为解码器输入增加目标序列信息(会损失TgtSeq的最后一位(左闭右开),保持step大小)
             dec_input = torch.cat([bos, TgtSeq[:, :-1]], 1)
             # 经过一次神经网络计算
             TgtSeq_hat, _ = net(SrcSeq, dec_input, SrcSeq_valid_len)
