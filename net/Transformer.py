@@ -5,48 +5,7 @@
 # @python  : Python 3.9.12
 
 
-from .transformerUtil import *
-
-
-class PositionWiseFFN(nn.Module):
-    def __init__(self, ffn_num_input, ffn_num_hiddens, ffn_num_outputs):
-        """
-        基于位置的前馈网络(MLP层)
-        改变张量的最里层维度的尺寸,会改变成基于位置的前馈网络的输出尺寸.
-        因为用同一个多层感知机对所有位置上的输入进行变换,所以当所有这些位置的输入相同时,它们的输出也是相同的.
-
-        :param ffn_num_input:
-        :param ffn_num_hiddens:
-        :param ffn_num_outputs:
-        """
-        super(PositionWiseFFN, self).__init__()
-        self.dense1 = nn.Linear(ffn_num_input, ffn_num_hiddens)
-        self.relu = nn.ReLU()
-        self.dense2 = nn.Linear(ffn_num_hiddens, ffn_num_outputs)
-
-    def forward(self, X):
-        return self.dense2(self.relu(self.dense1(X)))
-
-
-class AddNorm(nn.Module):
-    def __init__(self, normalized_shape, dropout):
-        """
-        Add&Norm层, 残差连接后进行层规范化
-        在一个小批量的样本内基于批量规范化对数据进行重新中心化和重新缩放的调整.
-        LN(层规范化)和BN(批量规范化)的目标相同:将数据样本变换为均值0方差1.
-        但LN是基于特征维度进行规范化.BN是样本批次纬度进行规范化.
-        尽管BN(批量规范化)在计算机视觉中被广泛应用,但在自然语言处理任务中（输入通常是变长序列）批量规范化通常不如层规范化的效果好.
-
-        :param normalized_shape:
-        :param dropout:
-        """
-        super(AddNorm, self).__init__()
-        self.dropout = nn.Dropout(dropout)
-        self.ln = nn.LayerNorm(normalized_shape)
-
-    def forward(self, X, Y):
-        # 残差连接要求两个输入的形状相同,以便加法操作后输出张量的形状相同.
-        return self.ln(self.dropout(Y) + X)
+from .TransformerComponent import *
 
 
 class EncoderBlock(nn.Module):
@@ -190,6 +149,25 @@ class EncoderDecoder(nn.Module):
 
 
 def ComponentTest():
+    # ==============check point 0================
+    # 经过掩蔽softmax操作,超出有效长度的值都被掩蔽为0
+    mask_value1 = masked_softmax(torch.rand(2, 2, 8), valid_lens=torch.tensor([2, 3]))
+    # 同样,我们也可以使用⼆维张量,为矩阵样本中的每⼀行指定有效长度。
+    mask_value2 = masked_softmax(torch.rand(2, 2, 8), valid_lens=torch.tensor([[1, 3], [2, 4]]))
+    print("测试mask:", mask_value1)
+    print("测试mask:", mask_value2)
+
+    # 使用键和值相同的小例⼦来测试我们编写的MultiHeadAttention类。
+    # 多头注意力输出的形状是  (batch_size,num_queries,num_hiddens)
+    num_hiddens, num_heads = 100, 5
+    attention = MultiHeadAttention(num_hiddens, num_hiddens, num_hiddens, num_hiddens, num_heads, 0.5)
+    attention.eval()
+    batch_size, num_queries = 2, 4
+    num_kvpairs, valid_lens = 6, torch.tensor([3, 2])
+    X = torch.ones((batch_size, num_queries, num_hiddens))
+    Y = torch.ones((batch_size, num_kvpairs, num_hiddens))
+    print("MultiHeadAttention output shape:", attention(X, Y, Y, valid_lens).shape)
+
     # ==============check point 1================
     ffn = PositionWiseFFN(4, 4, 8)
     ffn.eval()
