@@ -13,31 +13,41 @@ loss绘图使用visdom绘图还是matplot绘图<br>
 * 运行 MainTest_Manual.py 手动输入测试
 
 # 文件结构
-### dataset -数据集文件夹
-- fra-eng: 下载的原始数据文件夹 <br>
-- fra-eng-processed: 经过处理的数据文件 <br>
-
-### env -参数环境文件夹
-* 模型网络参数设置和大部分训练设置
-### model -模型保存文件夹
-* 保存训练模型的位置
-### net -网络模型文件夹
-* transformer模型
-* 支持模型需要的层和方法
-### util -工具类文件夹
-* 画图工具<br>
-* 累加器<br>
-* 计时器<br>
-* 数据处理和加载<br>
-* 词元化-词库化处理<br>
-* 李沐老师的d2l库
-### MainTest_Manual.py
-* 运行这个.手动输入测试
-### MainTrain.py
-* 运行这个.开始训练
-### Predict.py
-* 不运行这个.作为MainTest_Manual.py和MainTrain.py的运行支持
-
+<pre class="content">
+│  MainTest_Manual.py   运行这个手动输入测试
+│  MainTrain.py	        运行这个开始训练	
+│  Predict.py	        (不运行)作为MainTest_Manual.py和MainTrain.py的运行支持
+│          
+├─ dataset	            数据集文件夹
+│  ├─ fra-eng            下载的原始数据文件夹
+│  │      fra.txt
+│  │      _about.txt
+│  │      
+│  └─ fra-eng-processed  经过处理的数据文件
+│          source.pkl
+│          SRC_VOCAB.pkl
+│          target.pkl
+│          TGT_VOCAB.pkl
+│          
+├─env
+│  └─ Env.py	模型网络参数设置和大部分训练设置
+│          
+├─model               保存训练模型的位置
+│  └─ final.mdl
+│      
+├─net
+│  │  Transformer.py      		transformer模型
+│  └─ TransformerComponent.py        支持模型需要的层和方法
+│          
+└─util				        工具类文件夹
+    │  Accumulator.py		指标累加器
+    │  Animator.py			画图工具
+    │  AnimatorVisdom.py   	画图工具
+    │  dataLoader.py		数据处理和加载
+    │  deviceUtil.py		计算设备选择
+    │  Timer.py			    计时器
+    └─ Vocab.py			    词元化-词库化处理
+</pre>
 # 运行环境
 * 处理器:8C14T &nbsp; 内存:16G &nbsp; 显存:6G <br>
 * 依赖参照requirements文件
