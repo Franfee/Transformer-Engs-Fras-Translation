@@ -80,7 +80,7 @@ def train_seq2seq(net, data_iter, lr, num_epochs, tgt_vocab, device):
             SrcSeq, SrcSeq_valid_len, TgtSeq, TgtSeq_valid_len = [x.to(device) for x in batch]
             # 为目标序列增加 "序列开始信息"
             bos = torch.tensor([tgt_vocab['<bos>']] * TgtSeq.shape[0], device=device).reshape(-1, 1)
-            # 强制教学, 为解码器输入增加目标序列信息(会损失TgtSeq的最后一位(左闭右开),保持step大小)
+            # 为目标序列增加 "序列开始信息" 强制教学, 为解码器输入增加目标序列信息(会损失TgtSeq的最后一位(左闭右开),保持step大小,论文Fig中shift right)
             dec_input = torch.cat([bos, TgtSeq[:, :-1]], 1)
             # 经过一次神经网络计算
             TgtSeq_hat, _ = net(SrcSeq, dec_input, SrcSeq_valid_len)
@@ -185,7 +185,7 @@ if __name__ == '__main__':
                 dec_attention_weights.permute(1, 2, 3, 0, 4)
             print(dec_self_attention_weights.shape, dec_inter_attention_weights.shape)
             # 由于解码器自注意力的自回归属性,查询不会对当前位置之后的“键－值”对进行注意力计算
-            # Plus one to include the beginning-of-sequencetoken
+            # Plus one to include the beginning-of-sequence token
             show_heatmaps(
                 dec_self_attention_weights[:, :, :, :len(translation.split()) + 1],
                 xlabel='Key positions', ylabel='Query positions',

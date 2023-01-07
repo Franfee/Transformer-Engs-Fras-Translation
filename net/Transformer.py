@@ -20,8 +20,8 @@ class EncoderBlock(nn.Module):
         self.addNorm2 = AddNorm(norm_shape, dropout)
 
     def forward(self, X, valid_lens):
-        Y = self.addNorm1(X, self.attention(X, X, X, valid_lens))
-        return self.addNorm2(Y, self.ffn(Y))
+        Y = self.addNorm1(X, self.attention(X, X, X, valid_lens))   # 论文Fig1,encoder中橙色attention,黄色Add Norm
+        return self.addNorm2(Y, self.ffn(Y))                        # 论文Fig1,encoder中蓝色ffn,黄色Add Norm,输出X形状不变以下一层blk
 
 
 class TransformerEncoder(nn.Module):
@@ -47,10 +47,10 @@ class TransformerEncoder(nn.Module):
     def forward(self, X, valid_lens):
         # 因为位置编码值在-1和1之间,因此嵌入值乘以嵌入维度的平方根进行缩放,然后再与位置编码相加.
         X = self.pos_encoding(self.embedding(X) * math.sqrt(self.num_hiddens))
-        self.attention_weights = [None] * len(self.blks)
+        self.attention_weights = [None] * len(self.blks)    # 预分配attention_weights为空
         for i, blk in enumerate(self.blks):
             X = blk(X, valid_lens)
-            self.attention_weights[i] = blk.attention.attention.attention_weights
+            self.attention_weights[i] = blk.attention.attention.attention_weights   # 第i层encoder的attention_weights
         return X
 
 
@@ -120,6 +120,10 @@ class TransformerDecoder(nn.Module):
         return [enc_outputs, enc_valid_lens, [None] * self.num_layers]
 
     def forward(self, X, state):
+        """
+        X: 解码输入
+        state:[编码输出, 编码有效长, [None] * self.num_layers]
+        """
         X = self.pos_encoding(self.embedding(X) * math.sqrt(self.num_hiddens))
         self._attention_weights = [[None] * len(self.blks) for _ in range(2)]
         for i, blk in enumerate(self.blks):
@@ -143,8 +147,13 @@ class EncoderDecoder(nn.Module):
         self.decoder = decoder
 
     def forward(self, enc_X, dec_X, *args):
+        """
+        enc_X: 编码器输入
+        dec_X: 解码器输入
+        *args: 源序列有效长度(编码器输入)
+        """
         enc_outputs = self.encoder(enc_X, *args)
-        dec_state = self.decoder.init_state(enc_outputs, *args)
+        dec_state = self.decoder.init_state(enc_outputs, *args)     # 返回的的东西只是加个空层[enc_outputs, *args, [None]*layer]
         return self.decoder(dec_X, dec_state)
 
 
